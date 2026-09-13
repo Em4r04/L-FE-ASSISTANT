@@ -1,0 +1,440 @@
+import React, { useState } from "react";
+import {
+  Alert, Modal, Pressable,
+  SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, View
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+// 5 Farklı Dil Sözlüğü ve Görevleri
+const translations = {
+  tr: {
+    welcomeTitle: "Dilini Seç / Choose Language",
+    home: "Ana Sayfa", assistant: "Asistan", calendar: "Takvim", wallet: "Bütçe", profile: "Profil",
+    hello: "Merhaba 👋", title: "Bugün senin günün.", summary: "BUGÜNÜN ÖZETİ",
+    completed: "görev tamamlandı", subText: "Kalan işlerini birlikte halledelim.",
+    tasksTitle: "Bugünkü görevler", addTask: "+ Görev Ekle",
+    totalBalance: "Toplam Bakiye", addIncome: "Para Ekle", addExpense: "Harcama Ekle",
+    transactions: "Son İşlemler", profileTitle: "Hayat Asistanı Kullanıcısı",
+    version: "Sürüm 1.0.0 (Çok Dilli)", cancel: "İptal", save: "Kaydet",
+    taskPlaceholder: "Görev adı...", timePlaceholder: "Saat (Örn: 14:00)...",
+    incomePlaceholder: "Kaynak (Örn: Harçlık)...", expensePlaceholder: "Harcama adı (Örn: Market)...",
+    amountPlaceholder: "Tutar (Örn: 150)...", aiTitle: "YAPAY ZEKA", aiQuestion: "Ne yapmamı istersin?",
+    aiPlaceholder: "Bir şeyler yaz...", aiDetected: "Yazdıkların algılandı:",
+    changeLang: "Dili Değiştir", defaultTasks: [
+      { id: "1", title: "Matematik çalış", time: "16:00", done: false },
+      { id: "2", title: "20 dakika kitap oku", time: "18:30", done: false }
+    ],
+    defaultTransactions: [
+      { id: "1", title: "Ulaşım", amount: -80, type: "expense" },
+      { id: "2", title: "Harçlık", amount: 500, type: "income" }
+    ]
+  },
+  en: {
+    welcomeTitle: "Choose Your Language",
+    home: "Home", assistant: "Assistant", calendar: "Calendar", wallet: "Wallet", profile: "Profile",
+    hello: "Hello 👋", title: "Today is your day.", summary: "TODAY'S SUMMARY",
+    completed: "tasks completed", subText: "Let's handle the remaining tasks together.",
+    tasksTitle: "Today's Tasks", addTask: "+ Add Task",
+    totalBalance: "Total Balance", addIncome: "Add Money", addExpense: "Add Expense",
+    transactions: "Recent Transactions", profileTitle: "Life Assistant User",
+    version: "Version 1.0.0 (Multi-Language)", cancel: "Cancel", save: "Save",
+    taskPlaceholder: "Task name...", timePlaceholder: "Time (e.g. 14:00)...",
+    incomePlaceholder: "Source (e.g. Allowance)...", expensePlaceholder: "Expense name (e.g. Market)...",
+    amountPlaceholder: "Amount...", aiTitle: "AI ASSISTANT", aiQuestion: "What would you like me to do?",
+    aiPlaceholder: "Type something...", aiDetected: "Detected text:",
+    changeLang: "Change Language", defaultTasks: [
+      { id: "1", title: "Study Mathematics", time: "16:00", done: false },
+      { id: "2", title: "Read book for 20 mins", time: "18:30", done: false }
+    ],
+    defaultTransactions: [
+      { id: "1", title: "Transportation", amount: -80, type: "expense" },
+      { id: "2", title: "Allowance", amount: 500, type: "income" }
+    ]
+  },
+  es: {
+    welcomeTitle: "Elige tu Idioma",
+    home: "Inicio", assistant: "Asistente", calendar: "Calendario", wallet: "Billetera", profile: "Perfil",
+    hello: "Hola 👋", title: "Hoy es tu día.", summary: "RESUMEN DE HOY",
+    completed: "tareas completadas", subText: "Resolvamos lo pendiente juntos.",
+    tasksTitle: "Tareas de hoy", addTask: "+ Agregar Tarea",
+    totalBalance: "Balance Total", addIncome: "Añadir Dinero", addExpense: "Añadir Gasto",
+    transactions: "Transacciones Recientes", profileTitle: "Usuario de Asistente",
+    version: "Versión 1.0.0 (Multiidioma)", cancel: "Cancelar", save: "Guardar",
+    taskPlaceholder: "Nombre de tarea...", timePlaceholder: "Hora...",
+    incomePlaceholder: "Fuente...", expensePlaceholder: "Nombre de gasto...",
+    amountPlaceholder: "Monto...", aiTitle: "INTELIGENCIA ARTIFICIAL", aiQuestion: "¿Qué quieres que haga?",
+    aiPlaceholder: "Escribe algo...", aiDetected: "Texto detectado:",
+    changeLang: "Cambiar Idioma", defaultTasks: [
+      { id: "1", title: "Estudiar matemáticas", time: "16:00", done: false },
+      { id: "2", title: "Leer libro 20 mins", time: "18:30", done: false }
+    ],
+    defaultTransactions: [
+      { id: "1", title: "Transporte", amount: -80, type: "expense" },
+      { id: "2", title: "Mesada", amount: 500, type: "income" }
+    ]
+  },
+  zh: {
+    welcomeTitle: "请选择您的语言",
+    home: "首页", assistant: "助手", calendar: "日历", wallet: "钱包", profile: "个人资料",
+    hello: "你好 👋", title: "今天是属于你的日子。", summary: "今日摘要",
+    completed: "个任务已完成", subText: "让我们一起完成剩下的工作。",
+    tasksTitle: "今日任务", addTask: "+ 添加任务",
+    totalBalance: "总余额", addIncome: "加钱", addExpense: "添加支出",
+    transactions: "最近交易", profileTitle: "生活助手用户",
+    version: "版本 1.0.0 (多语言)", cancel: "取消", save: "保存",
+    taskPlaceholder: "任务名称...", timePlaceholder: "时间...",
+    incomePlaceholder: "来源...", expensePlaceholder: "支出名称...",
+    amountPlaceholder: "金额...", aiTitle: "人工智能", aiQuestion: "你想让我做什么？",
+    aiPlaceholder: "输入内容...", aiDetected: "检测到的文本：",
+    changeLang: "更改语言", defaultTasks: [
+      { id: "1", title: "学习数学", time: "16:00", done: false },
+      { id: "2", title: "阅读20分钟", time: "18:30", done: false }
+    ],
+    defaultTransactions: [
+      { id: "1", title: "交通", amount: -80, type: "expense" },
+      { id: "2", title: "零花钱", amount: 500, type: "income" }
+    ]
+  },
+  hi: {
+    welcomeTitle: "अपनी भाषा चुनें",
+    home: "होम", assistant: "सहायक", calendar: "कैलेंडर", wallet: "बजट", profile: "प्रोफाइल",
+    hello: "नमस्ते 👋", title: "आज का दिन आपका है।", summary: "आज का सारांश",
+    completed: "कार्य पूरे हुए", subText: "आइए बाकी काम मिलकर करें।",
+    tasksTitle: "आज के कार्य", addTask: "+ कार्य जोड़ें",
+    totalBalance: "कुल शेष", addIncome: "धन जोड़ें", addExpense: "खर्च जोड़ें",
+    transactions: "हाल के लेन-देन", profileTitle: "लाइफ असिस्टेंट यूजर",
+    version: "संस्करण 1.0.0", cancel: "रद्द करें", save: "सहेजें",
+    taskPlaceholder: "कार्य का नाम...", timePlaceholder: "समय...",
+    incomePlaceholder: "स्रोत...", expensePlaceholder: "खर्च का नाम...",
+    amountPlaceholder: "राशि...", aiTitle: "एआई सहायक", aiQuestion: "आप क्या करवाना चाहते हैं?",
+    aiPlaceholder: "कुछ टाइप करें...", aiDetected: "पहचाना गया पाठ:",
+    changeLang: "भाषा बदलें", defaultTasks: [
+      { id: "1", title: "गणित का अध्ययन करें", time: "16:00", done: false },
+      { id: "2", title: "20 मिनट किताब पढ़ें", time: "18:30", done: false }
+    ],
+    defaultTransactions: [
+      { id: "1", title: "परिवहन", amount: -80, type: "expense" },
+      { id: "2", title: "जेब खर्च", amount: 500, type: "income" }
+    ]
+  }
+};
+
+export default function App() {
+  const [lang, setLang] = useState(null); 
+  const [tab, setTab] = useState("home");
+  
+  // Dil seçildiğinde otomatik o dilin verileri yüklenir
+  const t = lang ? translations[lang] : translations.tr;
+  
+  const [tasks, setTasks] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  
+  const [modalType, setModalType] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newTime, setNewTime] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  const [assistantInput, setAssistantInput] = useState("");
+
+  // Dil ilk seçildiğinde listeleri o dile göre doldur
+  const handleSelectLanguage = (code) => {
+    setLang(code);
+    setTasks(translations[code].defaultTasks);
+    setTransactions(translations[code].defaultTransactions);
+  };
+
+  if (!lang) {
+    return (
+      <SafeAreaView style={styles.safeCenter}>
+        <StatusBar barStyle="light-content"/>
+        <View style={styles.welcomeBox}>
+          <Ionicons name="globe-outline" size={48} color="#9B8CFF" style={{alignSelf: "center", marginBottom: 16}} />
+          <Text style={styles.welcomeTitle}>Dilinizi Seçin / Choose Language</Text>
+          
+          <View style={styles.langList}>
+            {[
+              ["tr", "🇹🇷 Türkçe"],
+              ["en", "🇬🇧 English"],
+              ["es", "🇪🇸 Español"],
+              ["zh", "🇨🇳 中文"],
+              ["hi", "🇮🇳 हिन्दी"]
+            ].map(([code, label]) => (
+              <Pressable key={code} style={styles.langOption} onPress={() => handleSelectLanguage(code)}>
+                <Text style={styles.langOptionText}>{label}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#9B8CFF" />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const completed = tasks.filter(item => item.done).length;
+  const progress = tasks.length ? completed / tasks.length : 0;
+  const balance = transactions.reduce((sum, item) => sum + Number(item.amount), 0);
+
+  const toggleTask = id =>
+    setTasks(ts => ts.map(item => item.id === id ? { ...item, done: !item.done } : item));
+
+  const navItems = [
+    ["home", t.home, "home-outline"],
+    ["assistant", t.assistant, "sparkles-outline"],
+    ["calendar", t.calendar, "calendar-outline"],
+    ["wallet", t.wallet, "wallet-outline"],
+    ["profile", t.profile, "person-outline"]
+  ];
+
+  const Home = () => (
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <View style={styles.topRow}>
+        <View>
+          <Text style={styles.muted}>{t.hello}</Text>
+          <Text style={styles.title}>{t.title}</Text>
+        </View>
+        <Pressable style={styles.iconButton} onPress={() => setLang(null)}>
+          <Ionicons name="globe-outline" size={22} color="#F7F8FF" />
+        </Pressable>
+      </View>
+
+      <View style={styles.hero}>
+        <View style={{flex:1}}>
+          <Text style={styles.heroKicker}>{t.summary}</Text>
+          <Text style={styles.heroTitle}>{completed}/{tasks.length} {t.completed}</Text>
+          <Text style={styles.heroText}>{t.subText}</Text>
+        </View>
+        <View style={styles.progressCircle}>
+          <Text style={styles.progressText}>{Math.round(progress*100)}%</Text>
+        </View>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.tasksTitle}</Text>
+        <Pressable onPress={() => { setNewTitle(""); setNewTime(""); setModalType("task"); }}>
+          <Text style={styles.linkText}>{t.addTask}</Text>
+        </Pressable>
+      </View>
+
+      {tasks.map(item => (
+        <Pressable key={item.id} onPress={() => toggleTask(item.id)}>
+          <View style={[styles.card, styles.taskCard]}>
+            <View style={[styles.check, item.done && styles.checkDone]}>
+              {item.done && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <View style={{flex:1}}>
+              <Text style={[styles.taskTitle, item.done && styles.done]}>{item.title}</Text>
+              <Text style={styles.taskMeta}>{item.time}</Text>
+            </View>
+          </View>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+
+  const AssistantScreen = () => (
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Text style={styles.eyebrow}>{t.aiTitle}</Text>
+      <Text style={styles.title}>{t.aiQuestion}</Text>
+      <TextInput
+        value={assistantInput}
+        onChangeText={setAssistantInput}
+        placeholder={t.aiPlaceholder}
+        placeholderTextColor="#737A91"
+        style={styles.input}
+      />
+      {assistantInput ? (
+        <View style={styles.card}>
+          <Text style={styles.taskTitle}>{t.aiDetected}</Text>
+          <Text style={styles.taskMeta}>{assistantInput}</Text>
+        </View>
+      ) : null}
+    </ScrollView>
+  );
+
+  const Calendar = () => (
+    <ScrollView contentContainerStyle={styles.content}>
+      <Text style={styles.title}>{t.calendar}</Text>
+      <View style={styles.card}>
+        <Text style={styles.taskTitle}>Eylül 2026</Text>
+        <Text style={styles.taskMeta}>Planlar aktif.</Text>
+      </View>
+    </ScrollView>
+  );
+
+  const Wallet = () => (
+    <ScrollView contentContainerStyle={styles.content}>
+      <Text style={styles.title}>{t.wallet}</Text>
+      <View style={styles.card}>
+        <Text style={styles.muted}>{t.totalBalance}</Text>
+        <Text style={styles.balanceText}>{balance} TL</Text>
+        <View style={styles.walletBtnRow}>
+          <Pressable style={styles.miniBtnIncome} onPress={() => { setNewTitle(""); setNewAmount(""); setModalType("income"); }}>
+            <Ionicons name="add-circle-outline" size={18} color="#fff" />
+            <Text style={styles.miniBtnText}>{t.addIncome}</Text>
+          </Pressable>
+          <Pressable style={styles.miniBtnExpense} onPress={() => { setNewTitle(""); setNewAmount(""); setModalType("expense"); }}>
+            <Ionicons name="remove-circle-outline" size={18} color="#fff" />
+            <Text style={styles.miniBtnText}>{t.addExpense}</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <Text style={styles.sectionTitle}>{t.transactions}</Text>
+      {transactions.map(item => (
+        <View key={item.id} style={[styles.card, styles.taskCard]}>
+          <Ionicons 
+            name={item.type === "income" ? "arrow-down-circle-outline" : "arrow-up-circle-outline"} 
+            size={22} 
+            color={item.type === "income" ? "#4ADE80" : "#FF8C8C"} 
+          />
+          <View style={{flex:1}}>
+            <Text style={styles.taskTitle}>{item.title}</Text>
+          </View>
+          <Text style={[styles.amountText, { color: item.type === "income" ? "#4ADE80" : "#FF8C8C" }]}>
+            {item.type === "income" ? `+${item.amount}` : item.amount} TL
+          </Text>
+        </View>
+      ))}
+    </ScrollView>
+  );
+
+  const Profile = () => (
+    <ScrollView contentContainerStyle={styles.content}>
+      <Text style={styles.title}>{t.profile}</Text>
+      <View style={styles.card}>
+        <Text style={styles.taskTitle}>{t.profileTitle}</Text>
+        <Text style={styles.taskMeta}>{t.version}</Text>
+        <Pressable style={styles.langChangeBtn} onPress={() => setLang(null)}>
+          <Ionicons name="globe-outline" size={16} color="#9B8CFF" />
+          <Text style={styles.langChangeText}>{t.changeLang}</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content"/>
+      <View style={{flex:1}}>
+        {tab==="home" ? <Home/> : tab==="assistant" ? <AssistantScreen/> : tab==="calendar" ? <Calendar/> : tab==="wallet" ? <Wallet/> : <Profile/>}
+        
+        <View style={styles.nav}>
+          {navItems.map(([id,label,icon])=><Pressable key={id} style={styles.navItem} onPress={()=>setTab(id)}>
+            <Ionicons name={tab===id ? icon.replace("-outline","") : icon} size={22} color={tab===id ? "#9B8CFF" : "#777E94"}/>
+            <Text style={[styles.navLabel,tab===id&&styles.navActive]}>{label}</Text>
+          </Pressable>)}
+        </View>
+      </View>
+
+      <Modal visible={modalType !== null} animationType="fade" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>
+              {modalType === "task" ? t.addTask : modalType === "income" ? t.addIncome : t.addExpense}
+            </Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder={modalType === "task" ? t.taskPlaceholder : modalType === "income" ? t.incomePlaceholder : t.expensePlaceholder}
+              placeholderTextColor="#737A91"
+              value={newTitle}
+              onChangeText={setNewTitle}
+            />
+
+            {modalType === "task" ? (
+              <TextInput
+                style={styles.input}
+                placeholder={t.timePlaceholder}
+                placeholderTextColor="#737A91"
+                value={newTime}
+                onChangeText={setNewTime}
+              />
+            ) : (
+              <TextInput
+                style={styles.input}
+                placeholder={t.amountPlaceholder}
+                placeholderTextColor="#737A91"
+                keyboardType="numeric"
+                value={newAmount}
+                onChangeText={setNewAmount}
+              />
+            )}
+
+            <View style={styles.modalButtons}>
+              <Pressable style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalType(null)}>
+                <Text style={styles.btnText}>{t.cancel}</Text>
+              </Pressable>
+              <Pressable 
+                style={[styles.modalBtn, styles.saveBtn]} 
+                onPress={() => {
+                  if (!newTitle.trim()) return;
+                  if (modalType === "task") {
+                    setTasks([{ id: Date.now().toString(), title: newTitle, time: newTime || "Gün içi", done: false }, ...tasks]);
+                  } else {
+                    const val = Number(newAmount) || 0;
+                    setTransactions([{ id: Date.now().toString(), title: newTitle, amount: modalType === "income" ? val : -val, type: modalType }, ...transactions]);
+                  }
+                  setNewTitle(""); setNewTime(""); setNewAmount(""); setModalType(null);
+                }}
+              >
+                <Text style={styles.btnText}>{t.save}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe:{flex:1,backgroundColor:"#0B0F1A"},
+  safeCenter:{flex:1,backgroundColor:"#0B0F1A",justifyContent:"center",alignItems:"center",padding:20},
+  welcomeBox:{width:"100%",maxWidth:380,backgroundColor:"#121827",borderRadius:24,padding:24,borderWidth:1,borderColor:"#1E2638"},
+  welcomeTitle:{color:"#F7F8FF",fontSize:20,fontWeight:"800",textAlign:"center",marginBottom:20},
+  langList:{gap:10},
+  langOption:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",backgroundColor:"#1A2234",padding:16,borderRadius:16,borderWidth:1,borderColor:"#273047"},
+  langOptionText:{color:"#F7F8FF",fontSize:16,fontWeight:"700"},
+  content:{padding:20,paddingBottom:120,gap:12},
+  topRow:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginBottom:4},
+  muted:{color:"#8D95AA",fontSize:14,fontWeight:"600",marginBottom:3},
+  title:{color:"#F7F8FF",fontSize:26,fontWeight:"800"},
+  iconButton:{width:40,height:40,borderRadius:12,backgroundColor:"#151A2A",alignItems:"center",justifyContent:"center"},
+  hero:{backgroundColor:"#6D5DF5",borderRadius:24,padding:18,flexDirection:"row",alignItems:"center",minHeight:130,marginVertical:6},
+  heroKicker:{color:"#CFC9FF",fontSize:11,fontWeight:"800"},
+  heroTitle:{color:"#fff",fontSize:21,fontWeight:"800",marginTop:6},
+  heroText:{color:"#E5E2FF",fontSize:13,marginTop:4},
+  progressCircle:{width:68,height:68,borderRadius:34,borderWidth:6,borderColor:"#BDB3FF",alignItems:"center",justifyContent:"center",marginLeft:8},
+  progressText:{color:"#fff",fontWeight:"800",fontSize:15},
+  sectionHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:8},
+  sectionTitle:{color:"#F7F8FF",fontSize:17,fontWeight:"800"},
+  linkText:{color:"#9B8CFF",fontWeight:"800",fontSize:14},
+  card:{backgroundColor:"#121827",borderRadius:18,padding:15,borderWidth:1,borderColor:"#1E2638"},
+  taskCard:{flexDirection:"row",alignItems:"center",gap:12},
+  check:{width:24,height:24,borderRadius:8,borderWidth:2,borderColor:"#454D64",alignItems:"center",justifyContent:"center"},
+  checkDone:{backgroundColor:"#7C6CF4",borderColor:"#7C6CF4"},
+  taskTitle:{color:"#F7F8FF",fontWeight:"700",fontSize:15},
+  taskMeta:{color:"#737B91",fontSize:12,marginTop:4},
+  done:{textDecorationLine:"line-through",color:"#737B91"},
+  eyebrow:{color:"#9B8CFF",fontSize:11,fontWeight:"900"},
+  input:{backgroundColor:"#0D1320",borderWidth:1,borderColor:"#273047",borderRadius:14,color:"#F7F8FF",paddingHorizontal:14,paddingVertical:12,fontSize:15,marginTop:8},
+  balanceText:{color:"#fff",fontSize:30,fontWeight:"900",marginTop:4},
+  amountText:{fontWeight:"800",fontSize:15},
+  walletBtnRow:{flexDirection:"row",gap:10,marginTop:12},
+  miniBtnIncome:{flex:1,backgroundColor:"#166534",paddingVertical:9,borderRadius:10,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:6},
+  miniBtnExpense:{flex:1,backgroundColor:"#991B1B",paddingVertical:9,borderRadius:10,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:6},
+  miniBtnText:{color:"#fff",fontWeight:"700",fontSize:12},
+  langChangeBtn:{flexDirection:"row",alignItems:"center",gap:6,marginTop:12,paddingTop:10,borderTopWidth:1,borderTopColor:"#1E2638"},
+  langChangeText:{color:"#9B8CFF",fontWeight:"700",fontSize:14},
+  nav:{position:"absolute",bottom:0,left:0,right:0,height:80,backgroundColor:"#101522",borderTopWidth:1,borderTopColor:"#20283A",flexDirection:"row",justifyContent:"space-around",paddingTop:8},
+  navItem:{alignItems:"center",width:"20%"},
+  navLabel:{color:"#70788D",fontSize:10,fontWeight:"700",marginTop:3},
+  navActive:{color:"#9B8CFF"},
+  modalOverlay:{flex:1,backgroundColor:"rgba(0,0,0,0.7)",justifyContent:"center",alignItems:"center",padding:20},
+  modalBox:{backgroundColor:"#121827",borderRadius:22,padding:20,width:"100%",maxWidth:380,borderWidth:1,borderColor:"#273047"},
+  modalTitle:{color:"#F7F8FF",fontSize:18,fontWeight:"800",marginBottom:10},
+  modalButtons:{flexDirection:"row",gap:10,marginTop:14},
+  modalBtn:{flex:1,paddingVertical:11,borderRadius:12,alignItems:"center"},
+  cancelBtn:{backgroundColor:"#20283A"},
+  saveBtn:{backgroundColor:"#6D5DF5"},
+  btnText:{color:"#fff",fontWeight:"700",fontSize:14}
+});
